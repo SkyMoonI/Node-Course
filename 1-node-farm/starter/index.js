@@ -31,22 +31,112 @@ const url = require("url");
 // console.log("Will read file!");
 /////////////////////////////////
 // SERVER
+
+//
+const replaceTemplate = (cardTemplate, productData) => {
+  let output = cardTemplate.replace(
+    /{%PRODUCTNAME%}/g,
+    productData.productName
+  );
+  output = output.replace(/{%IMAGE%}/g, productData.image);
+  output = output.replace(/{%PRICE%}/g, productData.price);
+  output = output.replace(/{%FROM%}/g, productData.from);
+  output = output.replace(/{%NUTRIENTS%}/g, productData.nutrients);
+  output = output.replace(/{%QUANTITY%}/g, productData.quantity);
+  output = output.replace(/{%DESCRIPTION%}/g, productData.description);
+  output = output.replace(/{%ID%}/g, productData.id);
+  if (!productData.organic) {
+    output = output.replace(/{%NOT_ORGANIC%}/g, "not-organic");
+  }
+  return output;
+};
+
+// Reading file of data for the API before starting the server so that we don't have to wait for the file to be read
+// And we don't have to read the file every time a request is made
+const templateOverview = fs.readFileSync(
+  `${__dirname}/templates/template-overview.html`,
+  "utf-8"
+);
+const templateCard = fs.readFileSync(
+  `${__dirname}/templates/template-card.html`,
+  "utf-8"
+);
+const templateProduct = fs.readFileSync(
+  `${__dirname}/templates/template-product.html`,
+  "utf-8"
+);
+
+// Reading data of the foods
+const data = fs.readFileSync(`${__dirname}/dev-data/data.json`, "utf-8");
+const dataObj = JSON.parse(data); // convert string to object because data is a string. we can't do operations on strings easily
+
+// Creating the server
 const server = http.createServer((req, res) => {
-  const pathName = req.url;
-  console.log(pathName);
-  if (pathName === "/" || pathName === "/overview") {
-    res.end("This is the OVERVIEW");
-  } else if (pathName === "/product") {
-    res.end("This is the PRODUCT");
-  } else {
+  // query has the id. So we can use it to choose the product we want
+  // We combine pathname with query to route to the correct page
+  // query: 'id=1', pathname: '/product'
+  const { query, pathname } = url.parse(req.url, true); // req.url has some attributes that we can use
+  console.log(url.parse(req.url));
+
+  // Overview page
+  if (pathname === "/" || pathname === "/overview") {
+    // server response with a header with 200 status code (success) and content type
+    res.writeHead(200, {
+      "content-type": "text/html",
+    });
+
+    // We use the replaceTemplate function to replace the placeholders with the data of the products in the data file
+    // map loops through the each element of the data object that we read from the file and returns an array of strings
+    // Then we join the array of strings into a single string
+    const cardsHtml = dataObj
+      .map((dataEl) => replaceTemplate(templateCard, dataEl))
+      .join("");
+
+    // We replace the cards placeholder with the cardsHtml string that we created
+    const output = templateOverview.replace("{%PRODUCT_CARDS%}", cardsHtml);
+
+    // We end the response with the output
+    res.end(output);
+  }
+
+  // Product page
+  else if (pathname === "/product") {
+    // server response with a header with 200 status code (success) and content type
+    res.writeHead(200, {
+      "content-type": "text/html",
+    });
+
+    // we bring the specific product data to display the product details
+    const product = dataObj[query.id];
+
+    // We use the replaceTemplate function to replace the placeholders with the data of the specific product
+    const output = replaceTemplate(templateProduct, product);
+
+    // We end the response with the output
+    res.end(output);
+  }
+
+  // API
+  else if (pathname === "/api") {
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(data);
+  }
+
+  // Not found
+  else {
+    // server response with a header with 404 status code (not found) and content type
+    // we can also create a custom header content type
     res.writeHead(404, {
       "content-type": "text/html",
       "my-own-header": "hello-world",
     });
+
+    // We end the response with a simple html header
     res.end("<h1>Page not found!</h1>");
   }
 });
 
+// Starting the server
 server.listen(8000, "127.0.0.1", () => {
   console.log("Listening to requests on port 8000");
 });
