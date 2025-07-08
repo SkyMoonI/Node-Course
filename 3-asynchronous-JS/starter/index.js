@@ -82,7 +82,7 @@ const writeFilePro = (file, data) => {
 // the solution is to use async/await
 // const getDogPic = async () => {
 //   try {
-//     const data = await readFilePro(`${__dirname}/dogg.txt`);
+//     const data = await readFilePro(`${__dirname}/dog.txt`);
 //     console.log(`Breed: ${data}`);
 
 //     const res = await superagent.get(
@@ -101,7 +101,7 @@ const writeFilePro = (file, data) => {
 //   return '2: READY 🐶';
 // };
 
-// returning values from async functions
+// // returning values from async functions
 // console.log('1: Will get dog pics!');
 // // const x = getDogPic();
 // // console.log(x);

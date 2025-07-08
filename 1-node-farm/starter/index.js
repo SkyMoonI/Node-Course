@@ -14,17 +14,17 @@ const replaceTemplate = require('./modules/replaceTemplate');
 // fs.writeFileSync("./txt/output.txt", textOut);
 // console.log("File written!");
 
-// // Non-blocking, asynchronous way
-// fs.readFile("./txt/start.txt", "utf-8", (err, data1) => {
-//   if (err) return console.log("ERROR! 💥");
+// Non-blocking, asynchronous way
+// fs.readFile('./txt/start.txt', 'utf-8', (err, data1) => {
+//   if (err) return console.log('ERROR! 💥');
 
-//   fs.readFile(`./txt/${data1}.txt`, "utf-8", (err, data2) => {
+//   fs.readFile(`./txt/${data1}.txt`, 'utf-8', (err, data2) => {
 //     console.log(data2);
-//     fs.readFile("./txt/append.txt", "utf-8", (err, data3) => {
+//     fs.readFile('./txt/append.txt', 'utf-8', (err, data3) => {
 //       console.log(data3);
 
-//       fs.writeFile("./txt/final.txt", `${data2}\n${data3}`, "utf-8", (err) => {
-//         console.log("Your file has been written 😁");
+//       fs.writeFile('./txt/final.txt', `${data2}\n${data3}`, 'utf-8', (err) => {
+//         console.log('Your file has been written 😁');
 //       });
 //     });
 //   });
@@ -62,6 +62,7 @@ const server = http.createServer((req, res) => {
   // We combine pathname with query to route to the correct page
   // query: 'id=1', pathname: '/product'
   const { query, pathname } = url.parse(req.url, true); // req.url has some attributes that we can use
+  // console.log(req);
   console.log(url.parse(req.url));
 
   // Overview page
