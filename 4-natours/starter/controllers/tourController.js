@@ -68,7 +68,8 @@ const createTour = (req, res) => {
   // console.log(req.body);
 
   const newId = tours[tours.length - 1].id + 1;
-  const newTour = { id: newId, ...req.body }; // this will add the id to the //req.body Object.assign({ id: newId }, req.body)
+  // eslint-disable-next-line prefer-object-spread
+  const newTour = Object.assign({ id: newId }, req.body); // this will add the id to the //{ id: newId, ...req.body }
 
   tours.push(newTour); // this will add the newTour to the tours array
 
