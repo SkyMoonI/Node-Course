@@ -8,8 +8,8 @@ const {
   getTour,
   updateTour,
   deleteTour,
-  checkID,
-  checkBody,
+  // checkID,
+  // checkBody,
 } = tourController;
 
 // app.get('/api/v1/tours', getAllTours);
@@ -22,10 +22,11 @@ const {
 const router = express.Router();
 
 // param middleware
-router.param('id', checkID);
+// router.param('id', checkID);
 
 // post(checkBody, createTour) this is chaining multiple middleware funcs
-router.route('/').get(getAllTours).post(checkBody, createTour);
+// router.route('/').get(getAllTours).post(checkBody, createTour);
+router.route('/').get(getAllTours).post(createTour);
 router.route('/:id').get(getTour).patch(updateTour).delete(deleteTour);
 
 module.exports = router;
