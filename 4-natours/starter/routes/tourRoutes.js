@@ -10,6 +10,9 @@ const {
   deleteTour,
   // checkID,
   // checkBody,
+  aliasTopTours,
+  getTourStats,
+  getMonthlyPlan,
 } = tourController;
 
 // app.get('/api/v1/tours', getAllTours);
@@ -23,6 +26,14 @@ const router = express.Router();
 
 // param middleware
 // router.param('id', checkID);
+
+// we can chain multiple middleware
+router.route('/top-5-cheap').get(aliasTopTours, getAllTours);
+
+router.route('/tour-stats').get(getTourStats);
+
+// we use /:year in the route because the route is going to be /monthly-plan/2021 so that we can get the year data from the url
+router.route('/monthly-plan/:year').get(getMonthlyPlan);
 
 // post(checkBody, createTour) this is chaining multiple middleware funcs
 // router.route('/').get(getAllTours).post(checkBody, createTour);

@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const app = require('./app');
-
+// this has to be placed before the app file. If not, the app file will not be able to access the env variables
 dotenv.config({ path: './config.env' });
+const app = require('./app');
 
 // we have to change the connection string to include the password.
 // because we don't want to explicitly write the password in the config file
