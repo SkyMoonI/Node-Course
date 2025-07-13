@@ -1,5 +1,15 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+
+// UNCAUGHT EXCEPTION: handles the sync errors
+// this has to be placed before all the other code
+process.on('uncaughtException', (err) => {
+  console.log('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+  console.log(err.name, err.message);
+  process.exit(1); // 0 is success and 1 is failure
+});
+// console.log(x);
+
 // this has to be placed before the app file. If not, the app file will not be able to access the env variables
 dotenv.config({ path: './config.env' });
 const app = require('./app');
@@ -30,8 +40,19 @@ mongoose
 // console.log(process.env);
 console.log(process.env.NODE_ENV);
 
-// 4) START SERVER
+// START SERVER
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`App running on port ${port}...`);
+});
+
+// UNHANDLED REJECTION
+// this handles the exception that we didn't handle in our code
+// handles the async errors
+process.on('unhandledRejection', (err) => {
+  console.log('UNHANDLED REJECTION! 💥 Shutting down...');
+  console.log(err.name, err.message);
+  server.close(() => {
+    process.exit(1); // 0 is success and 1 is failure
+  });
 });
