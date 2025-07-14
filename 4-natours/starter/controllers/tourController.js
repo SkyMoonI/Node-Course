@@ -45,7 +45,7 @@ const AppError = require('../utils/appError');
 const aliasTopTours = (req, res, next) => {
   req.query.limit = '5';
   req.query.sort = '-ratingsAverage,price';
-  req.query.fields = 'name,price,ratingsAverage,summary,difficulty';
+  req.query.fields = 'name,price,ratingAverage,summary,difficulty';
   next();
 };
 
@@ -503,7 +503,7 @@ const getMonthlyPlan = catchAsync(async (req, res, next) => {
 
   const plan = await Tour.aggregate([
     {
-      $unwind: '$startDates', // this will unwind the startDates array, means it will expand it into individual documents
+      $unwind: '$startDates', // this will unwind the startDates array, means it will expand it into individual documents. Because there would be more than one start date
     },
     {
       // this will filter the documents that have startDates that are greater than or equal to the start date of the year

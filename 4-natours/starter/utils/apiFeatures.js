@@ -11,8 +11,10 @@ class APIFeatures {
     excludeFields.forEach((el) => delete queryObj[el]);
 
     let queryStr = JSON.stringify(queryObj);
+    // we want to replace gte, gt, lte, lt with $gte, $gt, $lte, $lt. Because mongoose doesn't support these
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
 
+    // we need to give the query as an object not a string
     this.query = this.query.find(JSON.parse(queryStr));
 
     return this;

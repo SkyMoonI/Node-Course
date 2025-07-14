@@ -30,7 +30,7 @@ mongoose
   })
   .then(() => {
     // (con) => {
-    // console.log(con.connections);
+    // console.log(con.connections); }
     console.log('DB connection successful!');
   });
 
