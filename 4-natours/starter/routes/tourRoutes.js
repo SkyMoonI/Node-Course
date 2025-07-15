@@ -1,6 +1,7 @@
 const express = require('express');
 const tourController = require('../controllers/tourController');
 // const app = require('../app');
+const authController = require('../controllers/authController');
 
 const {
   getAllTours,
@@ -14,6 +15,8 @@ const {
   getTourStats,
   getMonthlyPlan,
 } = tourController;
+
+const { protect, restrictTo } = authController;
 
 // app.get('/api/v1/tours', getAllTours);
 // app.post('/api/v1/tours', createTour);
@@ -37,7 +40,13 @@ router.route('/monthly-plan/:year').get(getMonthlyPlan);
 
 // post(checkBody, createTour) this is chaining multiple middleware funcs
 // router.route('/').get(getAllTours).post(checkBody, createTour);
-router.route('/').get(getAllTours).post(createTour);
-router.route('/:id').get(getTour).patch(updateTour).delete(deleteTour);
+router.route('/').get(protect, getAllTours).post(createTour);
+// first we protect the route
+// restrictTo is for restricting access for deleting users
+router
+  .route('/:id')
+  .get(getTour)
+  .patch(updateTour)
+  .delete(protect, restrictTo('admin', 'lead-guide'), deleteTour);
 
 module.exports = router;

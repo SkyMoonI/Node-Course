@@ -49,6 +49,24 @@ const handleValidationErrorDB = (err) => {
   return new AppError(message, 400);
 };
 
+/**
+ * Creates a new AppError instance with a message about an invalid JSON Web Token
+ * and a 401 status code.
+ * @returns {AppError} - The new AppError instance
+ * @example 127.0.0.1:3000/api/v1/users (POSTing with invalid token)
+ */
+const handleJWTError = () =>
+  new AppError('Invalid token. Please log in again!', 401);
+
+/**
+ * Creates a new AppError instance with a message about an expired JSON Web Token
+ * and a 401 status code.
+ * @returns {AppError} - The new AppError instance
+ * @example 127.0.0.1:3000/api/v1/users (POSTing with expired token)
+ */
+const handleJWTExpiredError = () =>
+  new AppError('Your token has expired! Please log in again.', 401);
+
 const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
     status: err.status,
@@ -97,6 +115,8 @@ const globalErrorHandler = (err, req, res, next) => {
     if (error.code === 11000) error = handleDuplicateFieldsDB(error);
     if (error.name === 'ValidationError')
       error = handleValidationErrorDB(error);
+    if (error.name === 'JsonWebTokenError') error = handleJWTError();
+    if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
 
     sendErrorProd(error, res);
   }

@@ -17,6 +17,11 @@ const userSchema = new mongoose.Schema({
     validate: [validator.isEmail, 'Please provide a valid email'], // calling the custom validator
   },
   photo: String,
+  role: {
+    type: String,
+    enum: ['user', 'guide', 'lead-guide', 'admin'],
+    default: 'user',
+  },
   password: {
     type: String,
     required: [true, 'Please provide a password'],
@@ -36,6 +41,7 @@ const userSchema = new mongoose.Schema({
       message: 'Passwords are not the same!',
     },
   },
+  passwordChangedAt: Date,
 });
 
 // Encrypt password
@@ -55,6 +61,43 @@ userSchema.pre('save', async function (next) {
   this.passwordConfirm = undefined;
   next();
 });
+
+// instance method: it will be available on all documents of this collection
+// we can't use the this.password keyword here because it will point to the current document
+// so schema variables are not available
+userSchema.methods.correctPassword = async function (
+  candidatePassword,
+  userPassword,
+) {
+  return await bcrypt.compare(candidatePassword, userPassword);
+};
+
+// instance method: it will be available on all documents of this collection
+/**
+ * Checks if the password was changed after the given JWT timestamp.
+ * @param {number} JWTTimestamp - The timestamp of the JWT.
+ * @returns {boolean} - Returns true if the password was changed after the JWT was issued, otherwise false.
+ */
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+  // console.log(this.passwordChangedAt, JWTTimestamp);
+  if (this.passwordChangedAt) {
+    // we are trying to convert the passwordChangedAt to a number
+    const changedTimestamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10,
+    );
+    // console.log(
+    //   'Token issued before password change:',
+    //   JWTTimestamp < changedTimestamp,
+    // );
+
+    // if the date of the token is issued is less than the date of the password changed
+    // that means password is changed after the token was issued
+    return JWTTimestamp < changedTimestamp;
+  }
+  // false means not changed
+  return false;
+};
 
 const User = mongoose.model('User', userSchema);
 module.exports = User;
