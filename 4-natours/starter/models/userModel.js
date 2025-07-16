@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
@@ -41,7 +42,14 @@ const userSchema = new mongoose.Schema({
       message: 'Passwords are not the same!',
     },
   },
-  passwordChangedAt: Date,
+  passwordChangedAt: Date, // this will store the time when the password was changed
+  passwordResetToken: String,
+  passwordResetExpires: Date,
+  active: {
+    type: Boolean,
+    default: true,
+    select: false,
+  },
 });
 
 // Encrypt password
@@ -59,6 +67,36 @@ userSchema.pre('save', async function (next) {
   // Delete passwordConfirm field. Because we don't want to store it anymore.
   // it is only for validation at the beginning
   this.passwordConfirm = undefined;
+  next();
+});
+
+// Update passwordChangedAt property
+userSchema.pre('save', function (next) {
+  // this.isNew is a mongoose function
+  if (!this.isModified('password') || this.isNew) return next();
+
+  // we are extracting 1second from the current time.
+  // Because sometimes the token is issued before the password is changed
+  // The purpose of subtracting 1000 milliseconds (1 second) from the current time when setting '⁠passwordChangedAt' is to ensure
+  // that the timestamp is correctly set before the JWT (JSON Web Token) is issued.
+  // This small time adjustment helps to prevent potential timing issues where the JWT might be issued before the password change is fully registered in the database.
+  // >  If you set '⁠passwordChangedAt⁠' to '⁠Date.now()' without any adjustment,
+  // there could be a race condition where the JWT is created with an '⁠iat⁠' timestamp
+  // that is exactly the same or even slightly before the '⁠passwordChangedAt⁠' timestamp.
+  // > ⁠This timing issue might cause problems in your authentication logic,
+  // especially if you have middleware that invalidates tokens issued before the password change
+  // (e.g., to force a logout of all sessions after a password change).
+
+  this.passwordChangedAt = Date.now() - 1000;
+  next();
+});
+
+// Query middleware
+// this will run before every find query
+// so this will help us not to show the inactive users
+userSchema.pre(/^find/, function (next) {
+  // this points to the current query
+  this.find({ active: { $ne: false } });
   next();
 });
 
@@ -97,6 +135,28 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   }
   // false means not changed
   return false;
+};
+
+userSchema.methods.createPasswordResetToken = function () {
+  // generate random token
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  // encrypt the token
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  // { resetToken } this is generated token
+  // this.passwordResetToken this is the encrypted token
+  // we want to send the original token to the user mail
+  // Because we will compare the token with the encrypted token
+  console.log({ resetToken }, this.passwordResetToken);
+
+  // 10 minutes from now
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+
+  return resetToken;
 };
 
 const User = mongoose.model('User', userSchema);
