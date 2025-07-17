@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
 // const validator = require('validator');
+// const User = require('./userModel');
 
 // schema is like a blueprint for a document
 const tourSchema = new mongoose.Schema(
@@ -72,6 +73,40 @@ const tourSchema = new mongoose.Schema(
     startDates: [Date],
     secretTour: { type: Boolean, default: false }, // we use this to hide the tour from the users
     slug: String, // we use slug to store the slug of the tour that we created in the pre middleware
+    // up above are schema type options
+    // but startLocation is actually an embedded object
+    startLocation: {
+      // GeoJSON
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'], // we make sure that the start location is a point
+      },
+      coordinates: [Number], // in Geospatial, the coordinates are longitude first, latitude second
+      address: String,
+      description: String,
+    },
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'], // we make sure that the location is a point
+        },
+        coordinates: [Number], // in Geospatial, the coordinates are longitude first, latitude second
+        address: String,
+        description: String,
+        day: Number,
+      },
+    ],
+    // guides: Array, // this is for embedding
+    // this is for chile referencing
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+      },
+    ],
   },
   {
     toJSON: { virtuals: true }, // returns the virtual properties
@@ -93,6 +128,17 @@ tourSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { lower: true }); // lower: true makes the slug lowercase
   next();
 });
+
+// this is for populating the guides
+// this will automatically assign the users by their ids that exists in the guides array to the guides field
+// this is only for new document creation
+// if needed we can also use this for update operations
+// like if a guide is changed the email address or role changed...
+// tourSchema.pre('save', async function (next) {
+//   const guidesPromises = this.guides.map(async (id) => await User.findById(id));
+//   this.guides = await Promise.all(guidesPromises);
+//   next();
+// });
 
 // // we can also crate more than one pre middleware
 // tourSchema.pre('save', function (next) {
@@ -124,6 +170,16 @@ tourSchema.pre(/^find/, function (next) {
 //   console.log(`Query took ${Date.now() - this.start} milliseconds!`); // to get the time it took to execute the query
 //   next();
 // });
+
+// this will run before each query
+// so we don't have to write the populate in each query
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'guides',
+    select: '-__v -passwordChangedAt',
+  });
+  next();
+});
 
 // AGGREGATION MIDDLEWARE is a middleware that runs before every aggregation pipeline
 tourSchema.pre('aggregate', function (next) {

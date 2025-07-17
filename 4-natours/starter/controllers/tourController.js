@@ -207,6 +207,8 @@ const getTour = catchAsync(async (req, res, next) => {
   // }
 
   // Tour.findOne({ _id: req.params.id })
+  // populate is to show the users with guide role of the tour that are stored only with the id in the guides field
+  // don't forget that populate creates a query in the db
   const tour = await Tour.findById(req.params.id);
 
   // this will throw an error if the tour is not found
