@@ -1,9 +1,10 @@
 // const fs = require('fs');
 // const express = require('express');
 const Tour = require('../models/tourModel');
-const APIFeatures = require('../utils/apiFeatures');
+// const APIFeatures = require('../utils/apiFeatures');
 const catchAsync = require('../utils/catchAsync');
-const AppError = require('../utils/appError');
+// const AppError = require('../utils/appError');
+const factory = require('./handlerFactory');
 
 // const tours = fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`);
 // const toursJSON = JSON.parse(tours);
@@ -53,310 +54,321 @@ const aliasTopTours = (req, res, next) => {
 // (req, res) => {} is called route handler
 // tours is a resource in this API
 // this get will give us all the tours
-const getAllTours = catchAsync(async (req, res, next) => {
-  // res.status(200).json({ status: 'success', data: { tours: toursJSON } });
-  // if the data is the same, we can just write name of the variable
-  // this is called jSend data specification
-  // results is optional. we don't have to write if we send 1 data
-  // res
-  //   .status(200)
-  //   .json({ status: 'success', results: tours.length, data: { tours } });
+// const getAllTours = catchAsync(async (req, res, next) => {
+//   // res.status(200).json({ status: 'success', data: { tours: toursJSON } });
+//   // if the data is the same, we can just write name of the variable
+//   // this is called jSend data specification
+//   // results is optional. we don't have to write if we send 1 data
+//   // res
+//   //   .status(200)
+//   //   .json({ status: 'success', results: tours.length, data: { tours } });
 
-  // try {
-  //   // BUILD QUERY
-  //   // 1A) FILTERING
-  //   // when we set a variable to another object, that new variable will be a reference to the original object
-  //   // so if we change the original object, the new variable will also change, and vice versa
-  //   // so we need a hardcopy of the original object
-  //   // const queryObj = { ...req.query };
+//   // try {
+//   //   // BUILD QUERY
+//   //   // 1A) FILTERING
+//   //   // when we set a variable to another object, that new variable will be a reference to the original object
+//   //   // so if we change the original object, the new variable will also change, and vice versa
+//   //   // so we need a hardcopy of the original object
+//   //   // const queryObj = { ...req.query };
 
-  //   // // we are excluding the page, sort, limit and fields from the query. beacuse we will handle them later
-  //   // const excludeFields = ['page', 'sort', 'limit', 'fields'];
-  //   // excludeFields.forEach((el) => delete queryObj[el]);
+//   //   // // we are excluding the page, sort, limit and fields from the query. beacuse we will handle them later
+//   //   // const excludeFields = ['page', 'sort', 'limit', 'fields'];
+//   //   // excludeFields.forEach((el) => delete queryObj[el]);
 
-  //   // console.log(req.query, queryObj);
+//   //   // console.log(req.query, queryObj);
 
-  //   // hardcoded query
-  //   // const tours = await Tour.find({
-  //   //   duration: 5,
-  //   //   difficulty: 'easy',
-  //   // });
-  //   // hardcoded query but with mongoose query
-  //   // const tours = await Tour.find()
-  //   //   .where('duration')
-  //   //   .equals(5)
-  //   //   .where('difficulty')
-  //   //   .equals('easy');
+//   //   // hardcoded query
+//   //   // const tours = await Tour.find({
+//   //   //   duration: 5,
+//   //   //   difficulty: 'easy',
+//   //   // });
+//   //   // hardcoded query but with mongoose query
+//   //   // const tours = await Tour.find()
+//   //   //   .where('duration')
+//   //   //   .equals(5)
+//   //   //   .where('difficulty')
+//   //   //   .equals('easy');
 
-  //   // 1B) Advanced Filtering
-  //   // { difficulty: 'easy', duration: { gte: '5' } } this is from the query object
-  //   // { difficulty: 'easy', duration: { $gte: 5 } } this is for mongoose. we have to convert to this format
-  //   // let queryStr = JSON.stringify(queryObj);
-  //   // queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
-  //   // console.log(JSON.parse(queryStr));
+//   //   // 1B) Advanced Filtering
+//   //   // { difficulty: 'easy', duration: { gte: '5' } } this is from the query object
+//   //   // { difficulty: 'easy', duration: { $gte: 5 } } this is for mongoose. we have to convert to this format
+//   //   // let queryStr = JSON.stringify(queryObj);
+//   //   // queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+//   //   // console.log(JSON.parse(queryStr));
 
-  //   // this is too simple
-  //   // req.query is a query string. makes the filtering easier
-  //   // .find(req.query) also returns a query object
-  //   // we have to give object to find not a string so we convert it
-  //   // let query = Tour.find(JSON.parse(queryStr));
+//   //   // this is too simple
+//   //   // req.query is a query string. makes the filtering easier
+//   //   // .find(req.query) also returns a query object
+//   //   // we have to give object to find not a string so we convert it
+//   //   // let query = Tour.find(JSON.parse(queryStr));
 
-  //   // 2) SORTING
-  //   // if (req.query.sort) {
-  //   //   // sort('price ratingAverage') this is from the query string
-  //   //   const sortBy = req.query.sort.split(',').join(' '); // this is for the same sorting values.
-  //   //   query = query.sort(sortBy);
-  //   //   // console.log(sortBy);
-  //   // } else {
-  //   //   // this is a default sorting if no sort is given. -createdAt means sort by createdAt in descending order
-  //   //   // so the most recent tour will be first
-  //   //   query = query.sort('-createdAt');
-  //   // }
+//   //   // 2) SORTING
+//   //   // if (req.query.sort) {
+//   //   //   // sort('price ratingAverage') this is from the query string
+//   //   //   const sortBy = req.query.sort.split(',').join(' '); // this is for the same sorting values.
+//   //   //   query = query.sort(sortBy);
+//   //   //   // console.log(sortBy);
+//   //   // } else {
+//   //   //   // this is a default sorting if no sort is given. -createdAt means sort by createdAt in descending order
+//   //   //   // so the most recent tour will be first
+//   //   //   query = query.sort('-createdAt');
+//   //   // }
 
-  //   // 3) FIELD LIMITING
-  //   // if (req.query.fields) {
-  //   //   const fields = req.query.fields.split(',').join(' ');
-  //   //   query = query.select(fields);
-  //   // } else {
-  //   //   query = query.select('-__v'); // exclude the __v field
-  //   // }
+//   //   // 3) FIELD LIMITING
+//   //   // if (req.query.fields) {
+//   //   //   const fields = req.query.fields.split(',').join(' ');
+//   //   //   query = query.select(fields);
+//   //   // } else {
+//   //   //   query = query.select('-__v'); // exclude the __v field
+//   //   // }
 
-  //   // 4) PAGINATION
-  //   // const page = req.query.page * 1 || 1;
-  //   // const limit = req.query.limit * 1 || 100;
-  //   // const skip = (page - 1) * limit;
+//   //   // 4) PAGINATION
+//   //   // const page = req.query.page * 1 || 1;
+//   //   // const limit = req.query.limit * 1 || 100;
+//   //   // const skip = (page - 1) * limit;
 
-  //   // // page=2&limit=10, 1-10 page 1, 11-20 page 2, etc
-  //   // query = query.skip(skip).limit(limit);
+//   //   // // page=2&limit=10, 1-10 page 1, 11-20 page 2, etc
+//   //   // query = query.skip(skip).limit(limit);
 
-  //   // if (req.query.page) {
-  //   //   const numTours = await Tour.countDocuments(); // number of the tours
-  //   //   if (skip >= numTours) throw new Error('This page does not exist'); // throw means stop the function and goes to the catch
-  //   // }
+//   //   // if (req.query.page) {
+//   //   //   const numTours = await Tour.countDocuments(); // number of the tours
+//   //   //   if (skip >= numTours) throw new Error('This page does not exist'); // throw means stop the function and goes to the catch
+//   //   // }
 
-  //   // EXECUTE QUERY
-  //   // query looks like query.sort().select().skip().limit()
-  //   // const tours = await query;
+//   //   // EXECUTE QUERY
+//   //   // query looks like query.sort().select().skip().limit()
+//   //   // const tours = await query;
 
-  //   const features = new APIFeatures(Tour.find(), req.query)
-  //     .filter()
-  //     .sort()
-  //     .limitFields()
-  //     .paginate();
-  //   const tours = await features.query;
+//   //   const features = new APIFeatures(Tour.find(), req.query)
+//   //     .filter()
+//   //     .sort()
+//   //     .limitFields()
+//   //     .paginate();
+//   //   const tours = await features.query;
 
-  //   // SEND RESPONSE
-  //   res.status(200).json({
-  //     status: 'success',
-  //     results: tours.length,
-  //     data: {
-  //       tours,
-  //     },
-  //   });
-  // } catch (err) {
-  //   res.status(404).json({
-  //     status: 'fail',
-  //     message: err,
-  //   });
-  // }
+//   //   // SEND RESPONSE
+//   //   res.status(200).json({
+//   //     status: 'success',
+//   //     results: tours.length,
+//   //     data: {
+//   //       tours,
+//   //     },
+//   //   });
+//   // } catch (err) {
+//   //   res.status(404).json({
+//   //     status: 'fail',
+//   //     message: err,
+//   //   });
+//   // }
 
-  const features = new APIFeatures(Tour.find(), req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
-  const tours = await features.query;
+//   const features = new APIFeatures(Tour.find(), req.query)
+//     .filter()
+//     .sort()
+//     .limitFields()
+//     .paginate();
+//   const tours = await features.query;
 
-  // SEND RESPONSE
-  res.status(200).json({
-    status: 'success',
-    results: tours.length,
-    data: {
-      tours,
-    },
-  });
-});
+//   // SEND RESPONSE
+//   res.status(200).json({
+//     status: 'success',
+//     results: tours.length,
+//     data: {
+//       tours,
+//     },
+//   });
+// });
+
+const getAllTours = factory.getAll(Tour);
 
 // this get will give us a specific tour
 // could also get multiple params: /api/v1/tours/:id/:name/:price? '?' makes the parameter optional
-const getTour = catchAsync(async (req, res, next) => {
-  // console.log(req.params);
-  // const id = req.params.id * 1;
-  // const tour = tours.find((el) => el.id === id);
-  // res.status(200).json({
-  //   status: 'success',
-  //   data: {
-  //     tour,
-  //   },
-  // });
+// const getTour = catchAsync(async (req, res, next) => {
+//   // console.log(req.params);
+//   // const id = req.params.id * 1;
+//   // const tour = tours.find((el) => el.id === id);
+//   // res.status(200).json({
+//   //   status: 'success',
+//   //   data: {
+//   //     tour,
+//   //   },
+//   // });
 
-  // try {
-  //   // Tour.findOne({ _id: req.params.id })
-  //   const tour = await Tour.findById(req.params.id);
-  //   res.status(200).json({
-  //     status: 'success',
-  //     data: {
-  //       tour,
-  //     },
-  //   });
-  // } catch (err) {
-  //   res.status(404).json({
-  //     status: 'fail',
-  //     message: err,
-  //   });
-  // }
+//   // try {
+//   //   // Tour.findOne({ _id: req.params.id })
+//   //   const tour = await Tour.findById(req.params.id);
+//   //   res.status(200).json({
+//   //     status: 'success',
+//   //     data: {
+//   //       tour,
+//   //     },
+//   //   });
+//   // } catch (err) {
+//   //   res.status(404).json({
+//   //     status: 'fail',
+//   //     message: err,
+//   //   });
+//   // }
 
-  // Tour.findOne({ _id: req.params.id })
-  // populate is to show the users with guide role of the tour that are stored only with the id in the guides field
-  // don't forget that populate creates a query in the db
-  const tour = await Tour.findById(req.params.id);
+//   // Tour.findOne({ _id: req.params.id })
+//   // populate is to show the users with guide role of the tour that are stored only with the id in the guides field
+//   // don't forget that populate creates a query in the db
+//   // we use the populate method only when we get a single tour
+//   // we don't want to get all the reviews for all the tours
+//   const tour = await Tour.findById(req.params.id).populate('reviews');
 
-  // this will throw an error if the tour is not found
-  // valid id but not found
-  if (!tour) {
-    return next(new AppError('No tour found with that ID', 400));
-  }
+//   // this will throw an error if the tour is not found
+//   // valid id but not found
+//   if (!tour) {
+//     return next(new AppError('No tour found with that ID', 400));
+//   }
 
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-});
+//   res.status(200).json({
+//     status: 'success',
+//     data: {
+//       tour,
+//     },
+//   });
+// });
+
+const getTour = factory.getOne(Tour, { path: 'reviews' });
 
 // we need a middleware to modify the request because express does not put the body data in the request
 // we need next function in order to pass the error into the catchAsync fn.
 // so that that error can be handled by the global error handler
 // one more saying, async functions return a promise
 // so basically if there is an error in the func, that promise will be rejected
-const createTour = catchAsync(async (req, res, next) => {
-  // console.log(req.body);
-  // const newId = tours[tours.length - 1].id + 1;
-  // // eslint-disable-next-line prefer-object-spread
-  // const newTour = Object.assign({ id: newId }, req.body); // this will add the id to the //{ id: newId, ...req.body }
-  // tours.push(newTour); // this will add the newTour to the tours array
-  // // we have to stringify the tours array because it is not a string
-  // // status 201 means created
-  // fs.writeFile(
-  //   `${__dirname}/dev-data/data/tours-simple.json`,
-  //   JSON.stringify(tours),
-  //   (err) => {
-  //     if (err) return res.status(404).json({ status: 'fail', message: err });
-  //     res.status(201).json({
-  //       status: 'success',
-  //       data: {
-  //         tour: newTour,
-  //       },
-  //     });
-  //   },
-  // );
-  // creating a new tour with instance
-  // model.prototype works with the instances
-  // const newTour = new Tour();
-  // newTour.save(); // it returns a promise
+// const createTour = catchAsync(async (req, res, next) => {
+//   // console.log(req.body);
+//   // const newId = tours[tours.length - 1].id + 1;
+//   // // eslint-disable-next-line prefer-object-spread
+//   // const newTour = Object.assign({ id: newId }, req.body); // this will add the id to the //{ id: newId, ...req.body }
+//   // tours.push(newTour); // this will add the newTour to the tours array
+//   // // we have to stringify the tours array because it is not a string
+//   // // status 201 means created
+//   // fs.writeFile(
+//   //   `${__dirname}/dev-data/data/tours-simple.json`,
+//   //   JSON.stringify(tours),
+//   //   (err) => {
+//   //     if (err) return res.status(404).json({ status: 'fail', message: err });
+//   //     res.status(201).json({
+//   //       status: 'success',
+//   //       data: {
+//   //         tour: newTour,
+//   //       },
+//   //     });
+//   //   },
+//   // );
+//   // creating a new tour with instance
+//   // model.prototype works with the instances
+//   // const newTour = new Tour();
+//   // newTour.save(); // it returns a promise
 
-  // if you send data that doesn't exist in the schema, it will be ignored.
-  // it only takes data that is in the schema from req.body. so be careful with the naming
-  // try {
-  //   // creating a new tour with create method right on the model itself
-  //   // it returns a promise
-  //   const newTour = await Tour.create(req.body);
+//   // if you send data that doesn't exist in the schema, it will be ignored.
+//   // it only takes data that is in the schema from req.body. so be careful with the naming
+//   // try {
+//   //   // creating a new tour with create method right on the model itself
+//   //   // it returns a promise
+//   //   const newTour = await Tour.create(req.body);
 
-  //   res.status(201).json({
-  //     status: 'success',
-  //     data: {
-  //       tour: newTour,
-  //     },
-  //   });
-  // } catch (err) {
-  //   res.status(400).json({
-  //     status: 'fail',
-  //     message: err,
-  //   });
-  // }
+//   //   res.status(201).json({
+//   //     status: 'success',
+//   //     data: {
+//   //       tour: newTour,
+//   //     },
+//   //   });
+//   // } catch (err) {
+//   //   res.status(400).json({
+//   //     status: 'fail',
+//   //     message: err,
+//   //   });
+//   // }
 
-  const newTour = await Tour.create(req.body);
+//   const newTour = await Tour.create(req.body);
 
-  res.status(201).json({
-    status: 'success',
-    data: {
-      tour: newTour,
-    },
-  });
-});
+//   res.status(201).json({
+//     status: 'success',
+//     data: {
+//       tour: newTour,
+//     },
+//   });
+// });
+const createTour = factory.createOne(Tour);
 
-const updateTour = catchAsync(async (req, res, next) => {
-  // try {
-  //   const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-  //     new: true, // returns the updated document
-  //     runValidators: true, // this will run the validators that we have in the schema
-  //   });
+// const updateTour = catchAsync(async (req, res, next) => {
+//   // try {
+//   //   const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+//   //     new: true, // returns the updated document
+//   //     runValidators: true, // this will run the validators that we have in the schema
+//   //   });
 
-  //   res.status(200).json({
-  //     status: 'success',
-  //     data: {
-  //       tour,
-  //     },
-  //   });
-  // } catch (err) {
-  //   res.status(404).json({
-  //     status: 'fail',
-  //     message: err,
-  //   });
-  // }
+//   //   res.status(200).json({
+//   //     status: 'success',
+//   //     data: {
+//   //       tour,
+//   //     },
+//   //   });
+//   // } catch (err) {
+//   //   res.status(404).json({
+//   //     status: 'fail',
+//   //     message: err,
+//   //   });
+//   // }
 
-  const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-    new: true, // returns the updated document
-    runValidators: true, // this will run the validators that we have in the schema
-  });
+//   const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+//     new: true, // returns the updated document
+//     runValidators: true, // this will run the validators that we have in the schema
+//   });
 
-  // this will throw an error if the tour is not found
-  // valid id but not found
-  if (!tour) {
-    return next(new AppError('No tour found with that ID', 400));
-  }
+//   // this will throw an error if the tour is not found
+//   // valid id but not found
+//   if (!tour) {
+//     return next(new AppError('No tour found with that ID', 400));
+//   }
 
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-});
+//   res.status(200).json({
+//     status: 'success',
+//     data: {
+//       tour,
+//     },
+//   });
+// });
 
-const deleteTour = catchAsync(async (req, res, next) => {
-  // try {
-  //   await Tour.findByIdAndDelete(req.params.id);
+const updateTour = factory.updateOne(Tour);
 
-  //   // we use status 204 because we don't want to send any data
-  //   // it means no content. that's why data is null
-  //   res.status(204).json({
-  //     status: 'success',
-  //     data: null,
-  //   });
-  // } catch (err) {
-  //   res.status(404).json({
-  //     status: 'fail',
-  //     message: err,
-  //   });
-  // }
+// const deleteTour = catchAsync(async (req, res, next) => {
+//   // try {
+//   //   await Tour.findByIdAndDelete(req.params.id);
 
-  const tour = await Tour.findByIdAndDelete(req.params.id);
+//   //   // we use status 204 because we don't want to send any data
+//   //   // it means no content. that's why data is null
+//   //   res.status(204).json({
+//   //     status: 'success',
+//   //     data: null,
+//   //   });
+//   // } catch (err) {
+//   //   res.status(404).json({
+//   //     status: 'fail',
+//   //     message: err,
+//   //   });
+//   // }
 
-  // this will throw an error if the tour is not found
-  // valid id but not found
-  if (!tour) {
-    return next(new AppError('No tour found with that ID', 400));
-  }
+//   const tour = await Tour.findByIdAndDelete(req.params.id);
 
-  // we use status 204 because we don't want to send any data
-  // it means no content. that's why data is null
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
-});
+//   // this will throw an error if the tour is not found
+//   // valid id but not found
+//   if (!tour) {
+//     return next(new AppError('No tour found with that ID', 400));
+//   }
+
+//   // we use status 204 because we don't want to send any data
+//   // it means no content. that's why data is null
+//   res.status(204).json({
+//     status: 'success',
+//     data: null,
+//   });
+// });
+
+const deleteTour = factory.deleteOne(Tour);
 
 const getTourStats = catchAsync(async (req, res, next) => {
   // try {

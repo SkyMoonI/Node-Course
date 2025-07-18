@@ -10,12 +10,14 @@ const {
   getUser,
   updateUser,
   deleteUser,
+  getMe,
 } = userController;
 
 const {
   signup,
   login,
   protect,
+  restrictTo,
   forgotPassword,
   resetPassword,
   updatePassword,
@@ -32,10 +34,15 @@ router.patch('/resetPassword/:token', resetPassword);
 
 router.patch('/updateMyPassword', protect, updatePassword);
 
+router.get('/me', protect, getMe, getUser);
 router.patch('/updateMe', protect, updateMe);
 router.delete('/deleteMe', protect, deleteMe);
 
 router.route('/').get(getAllUsers).post(createUser);
-router.route('/:id').get(getUser).patch(updateUser).delete(deleteUser);
+router
+  .route('/:id')
+  .get(getUser)
+  .patch(updateUser)
+  .delete(protect, restrictTo('admin'), deleteUser);
 
 module.exports = router;

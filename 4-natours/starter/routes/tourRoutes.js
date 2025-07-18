@@ -2,6 +2,8 @@ const express = require('express');
 const tourController = require('../controllers/tourController');
 // const app = require('../app');
 const authController = require('../controllers/authController');
+// const reviewController = require('../controllers/reviewController');
+const reviewRouter = require('./reviewRoutes');
 
 const {
   getAllTours,
@@ -17,6 +19,8 @@ const {
 } = tourController;
 
 const { protect, restrictTo } = authController;
+
+// const { createReview } = reviewController;
 
 // app.get('/api/v1/tours', getAllTours);
 // app.post('/api/v1/tours', createTour);
@@ -48,5 +52,14 @@ router
   .get(getTour)
   .patch(updateTour)
   .delete(protect, restrictTo('admin', 'lead-guide'), deleteTour);
+
+// POST /tour/234fad4/reviews
+// GET /tour/234fad4/reviews
+// GET /tour/234fad4/reviews/234fad4
+// router
+//   .route('/:tourId/reviews')
+//   .post(protect, restrictTo('user'), createReview);
+
+router.use('/:tourId/reviews', reviewRouter);
 
 module.exports = router;

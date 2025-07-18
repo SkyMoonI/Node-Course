@@ -107,6 +107,14 @@ const tourSchema = new mongoose.Schema(
         ref: 'User',
       },
     ],
+    // this is chile referencing but we are going to do this in a different way
+    // it is called virtual populating
+    // reviews: [
+    //   {
+    //     type: mongoose.Schema.ObjectId,
+    //     ref: 'Review',
+    //   },
+    // ],
   },
   {
     toJSON: { virtuals: true }, // returns the virtual properties
@@ -118,6 +126,13 @@ const tourSchema = new mongoose.Schema(
 // they are computed from other properties
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
+});
+
+// virtual populating: not to store the reviews in the child referencing
+tourSchema.virtual('reviews', {
+  ref: 'Review', // this is the model name // const Review = mongoose.model('Review', reviewSchema);
+  foreignField: 'tour', // this is the field name in the Review model that references the Tour model
+  localField: '_id', // this is the field name in the Tour model how the tour model is called
 });
 
 // DOCUMENT MIDDLEWARE: runs before .save() and .create(), but not before .insertMany()

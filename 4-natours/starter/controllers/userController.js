@@ -1,6 +1,7 @@
 const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const factory = require('./handlerFactory');
 
 /**
  * This function takes an object and a list of allowed fields as input, and returns a new object that only contains the allowed fields.
@@ -16,19 +17,26 @@ const filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
-// status 500 means internal server error
-const getAllUsers = catchAsync(async (req, res, next) => {
-  const users = await User.find();
+const getMe = (req, res, next) => {
+  req.params.id = req.user.id;
+  next();
+};
 
-  // SEND RESPONSE
-  res.status(200).json({
-    status: 'success',
-    results: users.length,
-    data: {
-      users,
-    },
-  });
-});
+// status 500 means internal server error
+// const getAllUsers = catchAsync(async (req, res, next) => {
+//   const users = await User.find();
+
+//   // SEND RESPONSE
+//   res.status(200).json({
+//     status: 'success',
+//     results: users.length,
+//     data: {
+//       users,
+//     },
+//   });
+// });
+
+const getAllUsers = factory.getAll(User);
 
 const updateMe = catchAsync(async (req, res, next) => {
   // 1) Create error if user POSTs password data
@@ -74,33 +82,19 @@ const deleteMe = catchAsync(async (req, res, next) => {
   });
 });
 
-const getUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet defined',
-  });
-};
+const getUser = factory.getOne(User);
 
 const createUser = (req, res) => {
   res.status(500).json({
     status: 'error',
-    message: 'This route is not yet defined',
+    message: 'This route is not defined! Please use /signup instead',
   });
 };
 
-const updateUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet defined',
-  });
-};
-
-const deleteUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet defined',
-  });
-};
+// do NOT update password with this
+// this is for admin
+const updateUser = factory.updateOne(User);
+const deleteUser = factory.deleteOne(User);
 
 // module.exports = {
 //   getAllUsers,
@@ -117,3 +111,4 @@ exports.getUser = getUser;
 exports.createUser = createUser;
 exports.updateUser = updateUser;
 exports.deleteUser = deleteUser;
+exports.getMe = getMe;

@@ -36,13 +36,23 @@ class APIFeatures {
   }
 
   limitFields() {
+    const sensitiveFields = ['password', 'ssn', 'secret'];
+    // if (this.queryString.fields) {
+    //   const fields = this.queryString.fields.split(',').join(' ');
+    //   this.query = this.query.select(fields);
+    // } else {
+    //   this.query = this.query.select('-__v'); // exclude the __v field
+    // }
+
     if (this.queryString.fields) {
-      const fields = this.queryString.fields.split(',').join(' ');
-      this.query = this.query.select(fields);
+      const fieldsStr = this.queryString.fields
+        .split(',')
+        .filter((field) => !sensitiveFields.includes(field.trim()))
+        .join(' ');
+      this.query = this.query.select(fieldsStr);
     } else {
       this.query = this.query.select('-__v'); // exclude the __v field
     }
-
     return this;
   }
 
