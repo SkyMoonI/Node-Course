@@ -8,23 +8,27 @@ const {
   setTourUserIds,
   createReview,
   deleteReview,
+  deleteReviewOwner,
   updateReview,
 } = reviewController;
 
 const { protect, restrictTo } = authController;
 
-// this is called mounting a router
+// Protect all routes after this middleware
 const router = express.Router();
+
+// this
+router.use(protect);
 
 router
   .route('/')
   .get(getAllReviews)
-  .post(protect, restrictTo('user'), setTourUserIds, createReview);
+  .post(restrictTo('user'), setTourUserIds, createReview);
 
 router
   .route('/:id')
   .get(getReview)
-  .patch(protect, updateReview)
-  .delete(protect, restrictTo('user', 'admin'), deleteReview);
+  .patch(restrictTo('user', 'admin'), updateReview)
+  .delete(restrictTo('user', 'admin'), deleteReview);
 
 module.exports = router;

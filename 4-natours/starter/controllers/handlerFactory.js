@@ -4,6 +4,19 @@ const APIFeatures = require('../utils/apiFeatures');
 
 const deleteOne = (Model) =>
   catchAsync(async (req, res, next) => {
+    // admin can delete any document
+    // user can only delete their own document
+    if (req.user.role !== 'admin') {
+      if (req.user.id !== req.params.id) {
+        return next(
+          new AppError(
+            'You cannot delete this document. You are not the owner',
+            403,
+          ),
+        );
+      }
+    }
+
     const doc = await Model.findByIdAndDelete(req.params.id);
 
     if (!doc) {
@@ -77,6 +90,7 @@ const getAll = (Model) =>
       .limitFields()
       .paginate();
     const docs = await features.query;
+    // const docs = await features.query.explain();
 
     // SEND RESPONSE
     res.status(200).json({

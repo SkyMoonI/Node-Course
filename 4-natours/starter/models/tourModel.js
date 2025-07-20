@@ -37,6 +37,7 @@ const tourSchema = new mongoose.Schema(
       // min, max is a built-in validator. min, max is not only for numbers, but also for dates.
       min: [1, 'Rating must be above 1.0'],
       max: [5, 'Rating must be below 5.0'],
+      set: (val) => Math.round(val * 10) / 10, // 4.66666, 46.6666, 47, 4.7 to be rounded
     },
     ratingQuantity: { type: Number, default: 0 },
     price: { type: Number, required: [true, 'A tour must have a price'] },
@@ -122,6 +123,15 @@ const tourSchema = new mongoose.Schema(
   },
 );
 
+// INDEXES: indexes are used to improve the performance of queries
+// we index only the fields that are used frequently
+// indexes uses much more memory, and resources.
+// so we don't want to overdo it
+// 1 is for ascending order, -1 is for descending order
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ slug: 1 });
+tourSchema.index({ startLocation: '2dsphere' });
+
 // virtual properties are properties that are not stored in the database
 // they are computed from other properties
 tourSchema.virtual('durationWeeks').get(function () {
@@ -197,16 +207,16 @@ tourSchema.pre(/^find/, function (next) {
 });
 
 // AGGREGATION MIDDLEWARE is a middleware that runs before every aggregation pipeline
-tourSchema.pre('aggregate', function (next) {
-  // this.pipeline() is an array that contains the aggregation pipeline
-  // unshift is a method that adds a new element to the beginning of the array
-  // $match is a mongodb operator that is used to match documents
-  // this simple adds a filter to the aggregation pipeline
-  // we could have add the match in the aggregation pipeline directly in the controller
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  console.log(this.pipeline()); // to get the aggregation pipeline
-  next();
-});
+// tourSchema.pre('aggregate', function (next) {
+//   // this.pipeline() is an array that contains the aggregation pipeline
+//   // unshift is a method that adds a new element to the beginning of the array
+//   // $match is a mongodb operator that is used to match documents
+//   // this simple adds a filter to the aggregation pipeline
+//   // we could have add the match in the aggregation pipeline directly in the controller
+//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+//   console.log(this.pipeline()); // to get the aggregation pipeline
+//   next();
+// });
 
 // model is like a class
 const Tour = mongoose.model('Tour', tourSchema);
